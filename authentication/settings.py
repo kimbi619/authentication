@@ -31,17 +31,20 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'gce',
+    # 'rest_registration',  
+
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
     'core',
-    'rest_framework',
-    'rest_framework_simplejwt',
-    # 'rest_registration', 
+    
 ]
 
 MIDDLEWARE = [
@@ -80,8 +83,9 @@ WSGI_APPLICATION = 'authentication.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'fapi',
+        'USER': 'postgres'
     }
 }
 
@@ -104,6 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'core.user'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
