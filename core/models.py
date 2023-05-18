@@ -110,17 +110,6 @@ class User(AbstractBaseUser, PermissionsMixin, TrackingModel):
         verbose_name = _("user")
         verbose_name_plural = _("users")
 
-    def clean(self):
-        super().clean()
-        self.email = self.__class__.objects.normalize_email(self.email)
-
-    def get_full_name(self):
-        """
-        Return the first_name plus the last_name, with a space in between.
-        """
-        full_name = "%s %s" % (self.first_name, self.last_name)
-        return full_name.strip()
-
     @property
     def token(self):
         return ''
