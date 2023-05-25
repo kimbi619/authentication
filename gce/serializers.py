@@ -8,4 +8,4 @@ class StudentSerializer(serializers.ModelSerializer):
 
 class ResultSerializer(serializers.ModelSerializer):
     model = Result
-    fields = '__all__'
+    fields = ['subject', 'grade', 'level']
