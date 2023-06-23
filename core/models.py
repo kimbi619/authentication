@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserM
 from django.utils.translation import gettext_lazy as _
 import jwt
 # Create your models here.
+from django.conf import settings
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -111,23 +112,3 @@ class User(AbstractBaseUser, PermissionsMixin, TrackingModel):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
-
-    # @property
-    # def token(self):
-    #     # access = tokens.AccessToken()
-    #     # refresh = tokens.RefreshToken()
-    #     return ''
-    
-    @property
-    def token(self):
-        token = jwt.encode(
-            {
-                'username': self.username, 
-                'email': self.email, 
-                'exp': datetime.utcnow() + timedelta(days=1)
-            }, 
-            settings.SECRET_KEY, 
-            algorithm='HS256'
-        )
-        print('token ----->', token)
-        return token

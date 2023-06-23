@@ -1,4 +1,6 @@
 from django.shortcuts import render
+import cv2
+import numpy as np
 
 # Create your views here.
 from rest_framework.views import APIView, Response, status
@@ -21,6 +23,22 @@ class GCEView(APIView):
         return Response( serialized_data, status=status.HTTP_200_OK)
 
 
+class GceCertificateView(APIView):
+    def post(self, request, *args, **kwargs):
+        if request.FILES.get('image'):
+            image_file = request.FILES['image']
+            print('image file---> ', image_file)
+            try:
+                image = cv2.imdecode(np.fromstring(image_file.read(), np.uint8), cv2.IMREAD_UNCHANGED)
+                image_type = image.format.lower()
+                return Response( "received", status=status.HTTP_200_OK)
+            except:
+                return Response( "serialized_data", status=status.HTTP_200_OK)
+        else:
+            return Response( 'serialized_data', status=status.HTTP_200_OK)
+
+
+
 # class Create(APIView):
 #     def post(self, request):
 #         body = self.request.body
@@ -39,4 +57,4 @@ def populateDB():
         for grade in grades:
             Result.objects.create(student_id=new_student, subject=grade['title'].strip(), grade=grade['grade'].strip(), level='ordinary', education='general')
 
-# populateDB()
+# populateDB()  

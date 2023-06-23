@@ -1,8 +1,9 @@
 
 
 from django.urls import path
-from .views import GCEView
+from . import views
 
 urlpatterns = [
-    path('results/', GCEView.as_view()),
+    path('results/', views.GCEView.as_view()),
+    path('image/', views.GceCertificateView.as_view()),
 ]
