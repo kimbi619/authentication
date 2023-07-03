@@ -8,4 +8,4 @@ class Util:
             body=data['email_body'],
             to=[data['to_email']]
         )
-        email.send()
+        email.send() 
