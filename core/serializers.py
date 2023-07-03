@@ -2,9 +2,11 @@ from rest_framework import serializers
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed    
 
 from .models import User
+
+
 
 # class TokenPairSerializer(TokenObtainPairSerializer):
 #     @classmethod
@@ -56,3 +58,25 @@ class LoginSerializer(serializers.ModelSerializer):
         # fields = ['email', 'password', 'groups']
         fields = '__all__'
 
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255, min_length=5)
+
+    class Meta:
+        fields = ['email']
+    
+    def validate(self, attrs):
+
+        return super().validate(attrs)
+
+
+
+# relativeLink = reverse('password_reset_confirm')
+# absurl = 'http://'+current_site+relativeLink
+# email_body = f'To Reset password for {user.username} user the link below'
+# data = {
+#     'email_body': email_body,
+#     'to_email': user.email,
+#     'email_subject': 'Reset password',
+    
+# }

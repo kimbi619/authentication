@@ -38,6 +38,33 @@ class GceCertificateView(APIView):
             return Response( 'serialized_data', status=status.HTTP_200_OK)
 
 
+class ValidateResultView(APIView):
+    def get_results(self, name, level, year):
+        stud_id = self.get_student(name)
+        grade = Result.objects.filter(student_id = stud_id).all()
+        serialized_data = serializers.serialize('json', grade)
+        print('================================')
+        print(serialized_data)
+        print('================================')
+
+    def get_student(self, name):
+        student = Student.objects.filter(name = name).first()
+
+    def post(self, request):
+        name = request.data.get('name')
+        level = request.data.get('level')
+        year = request.data.get('year')
+        subjects = request.data.get('subjects')
+
+        stud_res = self.get_results(name = name, level = level, year = year)
+        for subject in subjects: 
+            print(subject['subject'] + " --- " + subject['grade'])
+
+
+        return Response("this is the server response", status=status.HTTP_200_OK)
+
+    
+
 
 # class Create(APIView):
 #     def post(self, request):
