@@ -15,3 +15,6 @@ class Result(models.Model):
     level = models.CharField(_("Ordinary or advanced Level"), max_length=15, null=False, blank=False)
     education = models.CharField(_("Education type, grammar, technical or commercial"), max_length=25, blank=False, null=False)
 
+class Certificate(models.Model):
+    student_name = models.CharField(_("Name of the student"), max_length=256)
+    subject = models.ImageField(_("gce certificate"), upload_to='images/')
