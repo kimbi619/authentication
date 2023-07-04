@@ -86,7 +86,7 @@ class User(AbstractBaseUser, PermissionsMixin, TrackingModel):
     )
     is_active = models.BooleanField(
         _("active"),
-        default=True,
+        default=False,
         help_text=_(
             "Designates whether this user should be treated as active. "
             "Unselect this instead of deleting accounts."

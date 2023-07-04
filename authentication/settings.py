@@ -139,7 +139,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=50),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
@@ -215,6 +215,6 @@ SIMPLE_JWT = {
 EMAIL_USE_TLS = True     
 EMAIL_HOST='smtp.gmail.com'
 EMAIL_PORT=587
-EMAIL_HOST_USER= config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD= config('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER= "gcevalidator@gmail.com"
+EMAIL_HOST_PASSWORD= "ejrcsqdqqwtjzkoa"
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'

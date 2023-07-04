@@ -19,9 +19,26 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 
+import jwt
+from django.conf import settings
 class VerifyEmail(GenericAPIView):
     def get(self, request):
-        pass
+        token = request.GET.get('token')
+        try:
+            response = jwt.decode(token,settings.SECRET_KEY, algorithms=['HS256'])
+            user = User.objects.get(id=response['user_id'])
+            if not user.email_verified:
+                user.email_verified = True
+                user.is_active = True
+                user.save()
+            return Response({"success": "account verified"}, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError as invalidToken:
+            return Response({"error": "Activation time out"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            print(e)
+            return Response({"error": e}, status=status.HTTP_403_FORBIDDEN)
+        
 
 class RegisterAPIView(GenericAPIView):
 
