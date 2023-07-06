@@ -36,7 +36,7 @@ class GceCertificateView(APIView):
         top_half, bottom_half = self.fineTuneImage(cleaned_image)
         extractedBottomHalf = self.extractData(bottom_half)
         certificate_entities = self.findEntities(top_half)
-
+        self.openImage(bottom_half)
         data = {
             'is_valid': True,
             'level': 'Ordinary',
@@ -59,15 +59,14 @@ class GceCertificateView(APIView):
             the bottom half of the image
         """
         data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
-        textExtract = pytesseract.image_to_string(image, output_type=pytesseract.Output.DICT)
         paragraphs = []
         current_paragraph = []
         top_half = ''
         bottom_half = ''
         img_height, width = image.shape[:2]
-
         for i, word in enumerate(data['text']):
             if(data['text'][i]) == 'Name':
+                print('conde =========', data['text'][i])
                 left = data['left'][i]
                 top = data['top'][i]
                 width = data['width'][i]
@@ -76,7 +75,7 @@ class GceCertificateView(APIView):
 
                 top_half = image[:top - 10, :]
                 bottom_half = image[top - 10:, :]
-
+                break
             else:
                 top_half = image[:img_height // 2, :]
                 bottom_half = image[img_height // 2:, :]
@@ -182,7 +181,7 @@ class GceCertificateView(APIView):
                 elif line.startswith('Ordinary'):
                     level = 'Ordinary'
                 
-                print('line->', line)
+                # print('line->', line)
 
         except Exception as e:
             print(e)
@@ -192,7 +191,7 @@ class GceCertificateView(APIView):
         try:
             config = '--psm 4 --oem 3 tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
             text = pytesseract.image_to_string(imageSection, lang='eng', config=config)
-
+            print(text)
         except Exception as e:
             return e
         return self.cleanData(text)
