@@ -23,6 +23,8 @@ class Certificate(models.Model):
 
 class Institution(models.Model):
     name = models.CharField(_("name of the institution"), max_length=256, blank=False, null=False)
+    purpose = models.CharField(_("Purpose of the setring requirement"), max_length=256, blank=True, null=True)
+    level = models.CharField(_("Level of requirement: Advanced or Ordinary"), max_length=256, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

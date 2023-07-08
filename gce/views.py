@@ -2,7 +2,7 @@ from django.shortcuts import render
 import cv2
 import numpy as np
 import pytesseract
-
+from django.db.models import Q
 
 # Create your views here.
 from rest_framework.views import APIView, Response, status
@@ -263,11 +263,12 @@ def populateDB():
 
 class RestrictApiView( APIView ):
     def post(self, request):
-        # institutionName = request.data.get('name')
-        # name = Institution.objects.filter(name=institutionName).first()
+        institutionName = request.data.get('name')
+        purpose = request.data.get('purpose')
+        name = Institution.objects.filter(Q(name=institutionName) & Q(purpose = purpose)).first()
 
-        # if name:
-        #     return Response({"message": "institution requirement already set"}, status = status.HTTP_403_FORBIDDEN)
+        if name:
+            return Response({"message": "institution requirement already set"}, status = status.HTTP_403_FORBIDDEN)
        
         serializer = InstitutionSerializer(data=request.data)   
 
