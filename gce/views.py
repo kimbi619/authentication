@@ -6,9 +6,9 @@ import pytesseract
 
 # Create your views here.
 from rest_framework.views import APIView, Response, status
-from .serializers import ResultSerializer, StudentSerializer
+from .serializers import ResultSerializer, StudentSerializer, InstitutionSerializer
 from .Utils import NamedEntities
-from .models import Result, Student
+from .models import Result, Student, Institution
 from .data.filterList import fetchAllData
 from django.core import serializers
 
@@ -154,6 +154,8 @@ class GceCertificateView(APIView):
             else:
                 subject = " ".join(tokens[1:-1])
                 grade = tokens[-1]
+                if grade == 'Cc':
+                    grade = 'C'
 
             data = {
                 "code": code,
@@ -191,6 +193,7 @@ class GceCertificateView(APIView):
         try:
             config = '--psm 4 --oem 3 tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
             text = pytesseract.image_to_string(imageSection, lang='eng', config=config)
+            # text = text.rstrip()
             print(text)
         except Exception as e:
             return e
@@ -257,3 +260,23 @@ def populateDB():
             Result.objects.create(student_id=new_student, subject=grade['title'].strip(), grade=grade['grade'].strip(), level='ordinary', education='general')
 
 # populateDB()  
+
+class RestrictApiView( APIView ):
+    def post(self, request):
+        # institutionName = request.data.get('name')
+        # name = Institution.objects.filter(name=institutionName).first()
+
+        # if name:
+        #     return Response({"message": "institution requirement already set"}, status = status.HTTP_403_FORBIDDEN)
+       
+        serializer = InstitutionSerializer(data=request.data)   
+
+        if serializer.is_valid():
+            serializer.save()
+
+            data = serializer.data
+            return Response(data, status=status.HTTP_201_CREATED)
+        # else:
+        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"message": "response message"}, status=status.HTTP_200_OK)
