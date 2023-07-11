@@ -22,7 +22,6 @@ class GCEView(APIView):
         
         # serializer = ResultSerializer(grade, many=True)
         serialized_data = serializers.serialize('json', grade)
-        print(serialized_data)
         return Response( serialized_data, status=status.HTTP_200_OK)
 
 
@@ -34,18 +33,36 @@ class GceCertificateView(APIView):
 
         
         top_half, bottom_half = self.fineTuneImage(cleaned_image)
+        date, person, level = self.findEntities(top_half)
         extractedBottomHalf = self.extractData(bottom_half)
-        certificate_entities = self.findEntities(top_half)
-        self.openImage(bottom_half)
+        is_valid = self.checkValid('KELLY ENIH KINYAM', date, level, extractedBottomHalf)
+
+        # self.openImage(top_half)
         data = {
             'is_valid': True,
-            'level': 'Ordinary',
-            'year': '2017',
-            'name': 'NJI KIMBI DARLINGTON',
-            'results': extractedBottomHalf
+            'level': level,
+            'year': date,
+            'name': person,
+            'results': 'extractedBottomHalf'
         }
         return data
 
+    def checkValid(self, person, year, level, result):
+        try:
+            student = Student.objects.filter(Q(name=person) & Q(year=year) & Q(level=level)).first()
+            
+            if not student:
+                return "invalid student"
+            
+            subjects = Result.objects.filter(student_id = student.id).all()
+            for subject in subjects:
+                print(subject.subject)
+            return student
+
+        except Exception as e:
+            return e
+        return False
+    
     def fineTuneImage(self, image):
         """
         Split the text into paragraphs based on the bounding box coordinates
@@ -66,8 +83,6 @@ class GceCertificateView(APIView):
         img_height, width = image.shape[:2]
         for i, word in enumerate(data['text']):
             if(data['text'][i]) == 'Name':
-                print('conde =========', data['text'][i])
-                left = data['left'][i]
                 top = data['top'][i]
                 width = data['width'][i]
                 height = data['height'][i]
@@ -169,21 +184,23 @@ class GceCertificateView(APIView):
         try:
             config = '--psm 4 --oem 3 tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
             text = pytesseract.image_to_string(imageSection, lang='eng', config=config)
-            # entity = NamedEntities.getName(text)
-            # print(entity)
+            date, person = NamedEntities.getName(text)
+            
             level = ''
             lines = text.splitlines()
             for index, line in enumerate(lines):
                 if len(line) < 2:
                     continue
-                print(index)
-                if line.startswith('Advance'):
+                if  'Advanced' in line or 'advanc' in line:
                     level = 'advanced'
                     
-                elif line.startswith('Ordinary'):
-                    level = 'Ordinary'
+                elif 'Ordinary' in line or 'Ondinary' in line:
+                    level = 'ordinary'
+                elif line.__contains__(person):
+                    person = line
+
+            return date, person, level
                 
-                # print('line->', line)
 
         except Exception as e:
             print(e)
@@ -194,7 +211,6 @@ class GceCertificateView(APIView):
             config = '--psm 4 --oem 3 tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
             text = pytesseract.image_to_string(imageSection, lang='eng', config=config)
             # text = text.rstrip()
-            print(text)
         except Exception as e:
             return e
         return self.cleanData(text)
@@ -240,26 +256,15 @@ class ValidateResultView(APIView):
 
     
 
-
-# class Create(APIView):
-#     def post(self, request):
-#         body = self.request.body
-
-#         print(body)
-
-#         return Response({"message": "meet me"}, status=status.HTTP_200_OK)
-    
-
-def populateDB():
+def populateDB(level, year, education):
     data = fetchAllData()
     for dataItem in data:
         name = dataItem['name']
         grades = dataItem['grades']
-        new_student = Student.objects.create(name=name)
+        new_student = Student.objects.create(name=name, level=level, year=year, education = education )
         for grade in grades:
-            Result.objects.create(student_id=new_student, subject=grade['title'].strip(), grade=grade['grade'].strip(), level='ordinary', education='general')
+            Result.objects.create(student_id=new_student, subject=grade['title'].strip(), grade=grade['grade'].strip())
 
-# populateDB()  
 
 class RestrictApiView( APIView ):
     def post(self, request):
@@ -281,3 +286,9 @@ class RestrictApiView( APIView ):
         #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         return Response({"message": "response message"}, status=status.HTTP_200_OK)
+
+
+
+
+
+# populateDB(level = 'ordinary', year = '2017', education = 'general')  

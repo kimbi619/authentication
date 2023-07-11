@@ -7,19 +7,27 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 class Student(models.Model):
     name = models.CharField(_("student name"), max_length=256, null=False, blank=False)
+    level = models.CharField(_("Ordinary or advanced Level"), default='ordinary', max_length=15, null=False, blank=False)
+    year = models.CharField(_("Year which the student sat for exam"), max_length=15, null=True, blank=True)
+    education = models.CharField(_("Education type, grammar, technical or commercial"), default='general', max_length=25, blank=False, null=False)
+
+    def __str__(self):
+        return self.name
     
 class Result(models.Model):
-    student_id = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
+    student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
     subject = models.CharField(_("subject title"), max_length=256, null=False, blank=False)
     grade = models.CharField(_("grade for the course"), max_length=1, null=False, blank=True)
-    level = models.CharField(_("Ordinary or advanced Level"), max_length=15, null=False, blank=False)
-    education = models.CharField(_("Education type, grammar, technical or commercial"), max_length=25, blank=False, null=False)
+
+    def __str__(self):
+        return self.subject
 
 class Certificate(models.Model):
     student_name = models.CharField(_("Name of the student"), max_length=256)
     subject = models.ImageField(_("gce certificate"), upload_to='images/')
 
-
+    def __str__(self):
+        return self.student_name
 
 class Institution(models.Model):
     name = models.CharField(_("name of the institution"), max_length=256, blank=False, null=False)
