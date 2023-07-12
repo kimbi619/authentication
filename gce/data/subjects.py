@@ -68,11 +68,35 @@ subjects = [
         "title": "Literature"
     },
     {
-        "code": "LIT",
-        "title": "Literature"
+        "code": "REL",
+        "title": "Religious Studies"
     },
     {
-        "code": "LIT",
-        "title": "Literature"
+        "code": "CZE",
+        "title": "Citizenship"
+    },
+    {
+        "code": "FNU",
+        "title": "Food and Nutrition"
+    },
+    {
+        "code": "MAT",
+        "title": "Mathematics"
+    },
+    {
+        "code": "HBI",
+        "title": "Human Biology"
+    },
+    {
+        "code": "AMA",
+        "title": "Additional Mathematics"
+    },
+    {
+        "code": "LOG",
+        "title": "Logic"
+    },
+    {
+        "code": "CMS",
+        "title": "Commerce"
     }
 ]

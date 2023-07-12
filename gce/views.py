@@ -9,7 +9,7 @@ from rest_framework.views import APIView, Response, status
 from .serializers import ResultSerializer, StudentSerializer, InstitutionSerializer
 from .Utils import NamedEntities
 from .models import Result, Student, Institution
-from .data.filterList import fetchAllData
+from .data.filterList import fetchAllData, preProcessed
 from django.core import serializers
 
 class GCEView(APIView):
@@ -35,29 +35,39 @@ class GceCertificateView(APIView):
         top_half, bottom_half = self.fineTuneImage(cleaned_image)
         date, person, level = self.findEntities(top_half)
         extractedBottomHalf = self.extractData(bottom_half)
-        is_valid = self.checkValid('KELLY ENIH KINYAM', date, level, extractedBottomHalf)
+
+        is_valid, message = self.checkValid(person, date, level, extractedBottomHalf)
 
         # self.openImage(top_half)
         data = {
-            'is_valid': True,
+            'is_valid': is_valid,
+            'message': message,
             'level': level,
             'year': date,
             'name': person,
-            'results': 'extractedBottomHalf'
+            'results': extractedBottomHalf
         }
         return data
 
     def checkValid(self, person, year, level, result):
         try:
             student = Student.objects.filter(Q(name=person) & Q(year=year) & Q(level=level)).first()
-            
+            validSubject = []
             if not student:
-                return "invalid student"
+                return False, "No such student in the server"
             
             subjects = Result.objects.filter(student_id = student.id).all()
-            for subject in subjects:
-                print(subject.subject)
-            return student
+            if len(subjects) != len(result):
+                return False, "Results don't match"
+            
+            for res in result:
+                for sub in subjects:
+                    if res["Subject"] == sub.subject and res["Grade"] == sub.grade:
+                        validSubject.append(res)
+                        continue
+
+            if len(validSubject) == len(result):
+                return True, "valid certificate"
 
         except Exception as e:
             return e
@@ -258,12 +268,20 @@ class ValidateResultView(APIView):
 
 def populateDB(level, year, education):
     data = fetchAllData()
+    save_db(data, level, year, education)
+
+def processPopulate(level, year, education):
+    data = preProcessed()
+    # save_db(data, level, year, education)
+
+def save_db(data, level, year, education):
     for dataItem in data:
         name = dataItem['name']
         grades = dataItem['grades']
         new_student = Student.objects.create(name=name, level=level, year=year, education = education )
         for grade in grades:
-            Result.objects.create(student_id=new_student, subject=grade['title'].strip(), grade=grade['grade'].strip())
+            Result.objects.create(student_id=new_student, subject=grade['title'], grade=grade['grade'].strip())
+
 
 
 class RestrictApiView( APIView ):
@@ -291,4 +309,5 @@ class RestrictApiView( APIView ):
 
 
 
-# populateDB(level = 'ordinary', year = '2017', education = 'general')  
+# populateDB(level = 'advanced', year = '2011', education = 'general')  
+# processPopulate(level = 'ordinary', year = '2019', education = 'general')  

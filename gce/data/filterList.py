@@ -1,4 +1,6 @@
 import re
+from .subjects import subjects
+import json
 
 def extractData():
     data = []
@@ -17,14 +19,14 @@ def extractData():
             namepart = parts[0].rsplit('-', 2)
             name = namepart[0].strip()
 
-            subjectTitle = namepart[1]
+            subjectTitle = subjectMapping(namepart[1].strip())
             grade = namepart[2]
 
-            grades = [{"title": subjectTitle, "grade": grade}]
+            grades = [{"title":subjectTitle, "grade": grade}]
 
             for s in parts[1: -1]:
                 subjectTitle, grade = s.split('-', 1)
-                subject = {"title": subjectTitle.strip(),
+                subject = {"title": subjectMapping(subjectTitle.strip()),
                            "grade": grade.strip()}
                 grades.append(subject)
 
@@ -35,11 +37,47 @@ def extractData():
             data.append(student)
         return data
 
+def subjectMapping(code):
+    for subject in subjects:
+        if subject['code'] == code:
+            return subject['title']
+    return code
 
-# def saveData(data):
-#     print(response)
 
 def fetchAllData():
     return extractData()
 
+
+
+
+def preProcessed():
+    data = ''
+    results = []
+    with open('obj.txt', "r") as txt_file:
+        data = txt_file.read()
+
+    data = json.loads(data)
+    for item in data:
+        name = item['student_name']
+        all_grades = item['student_grades']
+        
+        grades = []
+        gradeList = all_grades.split(',')
+
+        for gradeItem in gradeList:
+            if len(gradeItem) == 4:
+                subjectTitle = gradeItem[:3]
+                grade = gradeItem[-1]
+            else:
+                subjectTitle, grade = gradeItem.split('-', 1)
+
+            subject = {"title": subjectMapping(subjectTitle.strip()),
+                        "grade": grade.strip()}
+            grades.append(subject)
+        student = {
+            "name": name,
+            "grades": grades
+        }
+        results.append(student)
+    return results
 
