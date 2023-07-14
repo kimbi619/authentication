@@ -2,6 +2,9 @@ import re
 from .subjects import subjects
 import json
 
+import os
+
+
 def extractData():
     data = []
     with open("file.txt", "r") as txt_file:
@@ -50,13 +53,18 @@ def fetchAllData():
 
 
 
-def preProcessed():
-    data = ''
-    results = []
-    with open('obj.txt', "r") as txt_file:
-        data = txt_file.read()
 
+def preProcessed():
+
+    file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ALG_2019.txt')
+    results = []
+    data=''
+    with open(file, "r") as txt_file:
+        data = txt_file.read()
+        
+    # print(data)
     data = json.loads(data)
+
     for item in data:
         name = item['student_name']
         all_grades = item['student_grades']

@@ -8,7 +8,7 @@ from django.db.models import Q
 from rest_framework.views import APIView, Response, status
 from .serializers import ResultSerializer, StudentSerializer, InstitutionSerializer
 from .Utils import NamedEntities
-from .models import Result, Student, Institution
+from .models import Result, Student, Institution, Certificate
 from .data.filterList import fetchAllData, preProcessed
 from django.core import serializers
 
@@ -38,6 +38,8 @@ class GceCertificateView(APIView):
 
         is_valid, message = self.checkValid(person, date, level, extractedBottomHalf)
 
+        if is_valid:
+            self.saveCertificate(person, image)
         # self.openImage(top_half)
         data = {
             'is_valid': is_valid,
@@ -48,6 +50,10 @@ class GceCertificateView(APIView):
             'results': extractedBottomHalf
         }
         return data
+    
+    def saveCertificate(self, studentName, certificate):
+        res = Certificate.objects.create(student_name=studentName, subject=certificate)
+        return res
 
     def checkValid(self, person, year, level, result):
         try:
@@ -244,25 +250,61 @@ class GceCertificateView(APIView):
 
 class ValidateResultView(APIView):
     def get_results(self, name, level, year):
-        stud_id = self.get_student(name)
-        grade = Result.objects.filter(student_id = stud_id).all()
-        serialized_data = serializers.serialize('json', grade)
+        student = self.get_student(name=name, year=year, level=level)
+        if not student:
+            return False
+        return Result.objects.filter(student_id = student).all()
 
-    def get_student(self, name):
-        student = Student.objects.filter(name = name).first()
 
+    def get_student(self, name, year, level):
+        student = Student.objects.filter(Q(name=name) & Q(year=year) & Q(level=level)).first()
+        return student
+
+    def checkValid(self, server_result, result):
+        try:
+            
+            validSubject = []
+            if len(server_result) != len(result):
+                return False, "Results don't match"
+            
+            for res in result:
+                for sub in server_result:
+                    if res["subject"].lower() == sub.subject.lower() and res["grade"].lower() == sub.grade.lower():
+                        print(res)
+                        print(sub)
+                        print()
+                        validSubject.append(res)
+                        continue
+
+            if len(validSubject) == len(result):
+                return True, validSubject, "valid Input"
+
+        except Exception as e:
+            return e
+        return False, validSubject, "Not valid"
+    
     def post(self, request):
         name = request.data.get('name')
         level = request.data.get('level')
         year = request.data.get('year')
-        subjects = request.data.get('subjects')
+        results = request.data.get('subjects')
+        education = request.data.get('education')
 
-        stud_res = self.get_results(name = name, level = level, year = year)
-        for subject in subjects: 
-            print(subject['subject'] + " --- " + subject['grade'])
+        server_results = self.get_results(name = name, level = level, year = year)
+        if not server_results:
+            return Response({"message": "Student not found", "is_valid": False}, status=status.HTTP_404_NOT_FOUND)
+        
+        state, responseList, message = self.checkValid(server_results, results)
 
-
-        return Response("this is the server response", status=status.HTTP_200_OK)
+        data = {
+            'is_valid': state,
+            'message': message,
+            'level': level,
+            'year': year,
+            'name': name,
+            'results': responseList
+        }
+        return Response(data, status=status.HTTP_202_ACCEPTED)
 
     
 
@@ -272,7 +314,7 @@ def populateDB(level, year, education):
 
 def processPopulate(level, year, education):
     data = preProcessed()
-    # save_db(data, level, year, education)
+    save_db(data, level, year, education)
 
 def save_db(data, level, year, education):
     for dataItem in data:
@@ -310,4 +352,4 @@ class RestrictApiView( APIView ):
 
 
 # populateDB(level = 'advanced', year = '2011', education = 'general')  
-# processPopulate(level = 'ordinary', year = '2019', education = 'general')  
+# processPopulate(level = 'advanced', year = '2019', education = 'general')  

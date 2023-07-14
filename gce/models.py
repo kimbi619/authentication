@@ -23,6 +23,7 @@ class Result(models.Model):
         return self.subject
 
 class Certificate(models.Model):
+    id = models.CharField(_("Unique id of certificate"), unique=True, auto_created=True, primary_key=True)
     student_name = models.CharField(_("Name of the student"), max_length=256)
     subject = models.ImageField(_("gce certificate"), upload_to='images/')
 

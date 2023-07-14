@@ -56,6 +56,10 @@ subjects = [
         "title": "Computer Science"
     },
     {
+        "code": "COM",
+        "title": "Commerce"
+    },
+    {
         "code": "ICT",
         "title": "Information and Communication Technology"
     },
@@ -94,9 +98,5 @@ subjects = [
     {
         "code": "LOG",
         "title": "Logic"
-    },
-    {
-        "code": "CMS",
-        "title": "Commerce"
     }
 ]
