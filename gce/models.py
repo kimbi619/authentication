@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 from django.core.validators import MaxValueValidator, MinValueValidator 
+from core.models import User
 
 class Student(models.Model):
     name = models.CharField(_("student name"), max_length=256, null=False, blank=False)
@@ -31,6 +32,7 @@ class Certificate(models.Model):
         return self.student_name
 
 class Institution(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='institute_req')
     name = models.CharField(_("name of the institution"), max_length=256, blank=False, null=False)
     purpose = models.CharField(_("Purpose of the setring requirement"), max_length=256, blank=True, null=True)
     level = models.CharField(_("Level of requirement: Advanced or Ordinary"), max_length=256, blank=True, null=True)
@@ -42,9 +44,6 @@ class Institution(models.Model):
     def __str__(self):
         return self.name
     
-    # @property
-    # def requirements(self):
-    #     return self.requirements_set.all()
 
 class AdmissionRequirement(models.Model):
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE, related_name='admission_requirements')

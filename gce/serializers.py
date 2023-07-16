@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Result, Student, Certificate, Institution, AdmissionRequirement
+from core.models import User
 
 class StudentSerializer(serializers.ModelSerializer):
     model = Student
@@ -26,10 +27,10 @@ class InstitutionSerializer(serializers.ModelSerializer):
     
 
 class AdmissionRequirementSerializer(serializers.ModelSerializer):
-    # id = serializers.IntegerField(required=False)
+    id = serializers.IntegerField(required=False)
     class Meta:
         model = AdmissionRequirement
-        fields = ['id', 'subject', 'grade']
+        fields = ['id', 'institution', 'subject', 'grade']
 
         read_only_fields = ['institution']
 
@@ -40,10 +41,17 @@ class InstitutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Institution
         fields = '__all__'
+        depth = 1
 
     def create(self, validated_data):
         requirements_data = validated_data.pop('admission_requirements')
+        
+        user_id = validated_data.get('user_id')
+        user = User.objects.filter(id=user_id).first()
+        validated_data['user_id'] = user
+
         institution = Institution.objects.create(**validated_data)
+
         for requirement_data in requirements_data:
             AdmissionRequirement.objects.create(**requirement_data, institution=institution)
         return institution

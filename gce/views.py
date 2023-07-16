@@ -6,9 +6,10 @@ from django.db.models import Q
 
 # Create your views here.
 from rest_framework.views import APIView, Response, status
-from .serializers import ResultSerializer, StudentSerializer, InstitutionSerializer
+from .serializers import ResultSerializer, StudentSerializer, InstitutionSerializer, AdmissionRequirementSerializer
 from .Utils import NamedEntities
-from .models import Result, Student, Institution, Certificate
+from .models import Result, Student, Institution, Certificate, AdmissionRequirement
+from core.models import User
 from .data.filterList import fetchAllData, preProcessed
 from django.core import serializers
 
@@ -327,25 +328,61 @@ def save_db(data, level, year, education):
 
 
 class RestrictApiView( APIView ):
+    def get(self, request):
+        userId = request.data.get('id')
+        postByUser = AdmissionRequirement.objects.filter(id=userId).all()
+
+        serializers = AdmissionRequirementSerializer(postByUser)
+
+        return Response({serializers.data}, status=status.HTTP_200_OK)
+    
+    
     def post(self, request):
         institutionName = request.data.get('name')
+        user_id = request.data.get('user_id')
         purpose = request.data.get('purpose')
-        name = Institution.objects.filter(Q(name=institutionName) & Q(purpose = purpose)).first()
+        level = request.data.get('level')
+        name = Institution.objects.filter(Q(name=institutionName) & Q(purpose = purpose) & Q(level = level)).first()
 
         if name:
             return Response({"message": "institution requirement already set"}, status = status.HTTP_403_FORBIDDEN)
        
-        serializer = InstitutionSerializer(data=request.data)   
+        user = User.objects.filter(id=user_id).first()
+
+        serializer = InstitutionSerializer(data=request.data) 
 
         if serializer.is_valid():
             serializer.save()
 
             data = serializer.data
             return Response(data, status=status.HTTP_201_CREATED)
-        # else:
-        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         return Response({"message": "response message"}, status=status.HTTP_200_OK)
+    
+
+    # def post(self, request):
+    #     institutionName = request.data.get('name')
+    #     purpose = request.data.get('purpose')
+    #     level = request.data.get('level')
+    #     name = Institution.objects.filter(Q(name=institutionName) & Q(purpose = purpose) & Q(level = level)).first()
+
+    #     if name:
+    #         return Response({"message": "institution requirement already set"}, status = status.HTTP_403_FORBIDDEN)
+       
+    #     serializer = InstitutionSerializer(data=request.data)   
+
+    #     if serializer.is_valid():
+    #         serializer.save()
+
+    #         data = serializer.data
+    #         return Response(data, status=status.HTTP_201_CREATED)
+    #     # else:
+    #     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    #     return Response({"message": "response message"}, status=status.HTTP_200_OK)
+
 
 
 
