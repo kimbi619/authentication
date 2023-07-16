@@ -35,7 +35,9 @@ class AdmissionRequirementSerializer(serializers.ModelSerializer):
         read_only_fields = ['institution']
 
  
+    
 class InstitutionSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     admission_requirements = AdmissionRequirementSerializer(many=True)
 
     class Meta:
@@ -44,14 +46,10 @@ class InstitutionSerializer(serializers.ModelSerializer):
         depth = 1
 
     def create(self, validated_data):
-        requirements_data = validated_data.pop('admission_requirements')
-        
-        user_id = validated_data.get('user_id')
-        user = User.objects.filter(id=user_id).first()
-        validated_data['user_id'] = user
+        admission_requirements_data = validated_data.pop('admission_requirements')
 
         institution = Institution.objects.create(**validated_data)
 
-        for requirement_data in requirements_data:
+        for requirement_data in admission_requirements_data:
             AdmissionRequirement.objects.create(**requirement_data, institution=institution)
         return institution

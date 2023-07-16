@@ -328,26 +328,27 @@ def save_db(data, level, year, education):
 
 
 class RestrictApiView( APIView ):
+
     def get(self, request):
-        userId = request.data.get('id')
-        postByUser = AdmissionRequirement.objects.filter(id=userId).all()
-
-        serializers = AdmissionRequirementSerializer(postByUser)
-
-        return Response({serializers.data}, status=status.HTTP_200_OK)
-    
+        admissions = Institution.objects.all()
+        serializer = InstitutionSerializer(admissions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request):
         institutionName = request.data.get('name')
-        user_id = request.data.get('user_id')
+        user_id = request.data.get('user')
         purpose = request.data.get('purpose')
         level = request.data.get('level')
+        user = User.objects.filter(id=user_id).first()
         name = Institution.objects.filter(Q(name=institutionName) & Q(purpose = purpose) & Q(level = level)).first()
 
+        if not user:
+            return Response({"message": f"No user with id {user_id}"}, status=status.HTTP_403_FORBIDDEN)
+        
         if name:
             return Response({"message": "institution requirement already set"}, status = status.HTTP_403_FORBIDDEN)
        
-        user = User.objects.filter(id=user_id).first()
+
 
         serializer = InstitutionSerializer(data=request.data) 
 
@@ -359,34 +360,30 @@ class RestrictApiView( APIView ):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({"message": "response message"}, status=status.HTTP_200_OK)
+
+
+class InstitutionRequirementAPIView(APIView):
+    def get(self, request, id):
+        admissions = Institution.objects.filter(user=id).all()
+        serializer = InstitutionSerializer(admissions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
+class AdmissionRequirementView(APIView):
+    def get(self, request, id):
+        requirement = Institution.objects.filter(id=id).all()
 
-    # def post(self, request):
-    #     institutionName = request.data.get('name')
-    #     purpose = request.data.get('purpose')
-    #     level = request.data.get('level')
-    #     name = Institution.objects.filter(Q(name=institutionName) & Q(purpose = purpose) & Q(level = level)).first()
-
-    #     if name:
-    #         return Response({"message": "institution requirement already set"}, status = status.HTTP_403_FORBIDDEN)
-       
-    #     serializer = InstitutionSerializer(data=request.data)   
-
-    #     if serializer.is_valid():
-    #         serializer.save()
-
-    #         data = serializer.data
-    #         return Response(data, status=status.HTTP_201_CREATED)
-    #     # else:
-    #     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not requirement:
+            return Response({"message": f"No requirement with id {id}"}, status=status.HTTP_404_NOT_FOUND)
         
-    #     return Response({"message": "response message"}, status=status.HTTP_200_OK)
+        serializer = InstitutionSerializer(requirement, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, id):
+        requirement = Institution.objects.filter(id=id).all()
+        if not requirement:
+            return Response({"message": f"No requirement with id {id}"}, status=status.HTTP_404_NOT_FOUND)
+        requirement.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-
-
-
-
-# populateDB(level = 'advanced', year = '2011', education = 'general')  
-# processPopulate(level = 'advanced', year = '2019', education = 'general')  
+    def update(self, request, id):
+        pass

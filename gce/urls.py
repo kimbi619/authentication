@@ -8,4 +8,6 @@ urlpatterns = [
     path('image/', views.GceCertificateView.as_view()),
     path('validate/', views.ValidateResultView.as_view()),
     path('requirements/', views.RestrictApiView.as_view()),
+    path('requirements/<int:id>/', views.InstitutionRequirementAPIView.as_view()),
+    path('admission-requirements/<int:id>/', views.AdmissionRequirementView.as_view(), name='admission-requirements-update'),
 ]

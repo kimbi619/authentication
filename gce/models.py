@@ -32,7 +32,7 @@ class Certificate(models.Model):
         return self.student_name
 
 class Institution(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='institute_req')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='institute_req')
     name = models.CharField(_("name of the institution"), max_length=256, blank=False, null=False)
     purpose = models.CharField(_("Purpose of the setring requirement"), max_length=256, blank=True, null=True)
     level = models.CharField(_("Level of requirement: Advanced or Ordinary"), max_length=256, blank=True, null=True)
@@ -40,6 +40,8 @@ class Institution(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['id', 'user']
 
     def __str__(self):
         return self.name
