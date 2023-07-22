@@ -12,6 +12,7 @@ from .models import Result, Student, Institution, Certificate, AdmissionRequirem
 from core.models import User
 from .data.filterList import fetchAllData, preProcessed
 from django.core import serializers
+from .data import subjects
 
 class GCEView(APIView):
     def get(self, request):
@@ -363,12 +364,18 @@ class RestrictApiView( APIView ):
 
 
 class InstitutionRequirementAPIView(APIView):
+    # def delete(self, request, id):
+    #     admission = Institution.objects.get(id=id)
+    #     admission.delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
+    
     def get(self, request, id):
         admissions = Institution.objects.filter(user=id).all()
         serializer = InstitutionSerializer(admissions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class AdmissionRequirementView(APIView):
+
     def get(self, request, id):
         requirement = Institution.objects.filter(id=id).all()
 
@@ -387,3 +394,12 @@ class AdmissionRequirementView(APIView):
 
     def update(self, request, id):
         pass
+
+
+class SubjectAPIView(APIView):
+    def get(self, request):
+        return Response(subjects.subjects, status=status.HTTP_200_OK)
+
+
+
+
