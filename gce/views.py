@@ -192,8 +192,8 @@ class GceCertificateView(APIView):
 
             data = {
                 "code": code,
-                "Subject": subject,
-                "Grade": grade
+                "subject": subject,
+                "grade": grade
             }
             responseData.append(data)
         return responseData
@@ -272,9 +272,6 @@ class ValidateResultView(APIView):
             for res in result:
                 for sub in server_result:
                     if res["subject"].lower() == sub.subject.lower() and res["grade"].lower() == sub.grade.lower():
-                        print(res)
-                        print(sub)
-                        print()
                         validSubject.append(res)
                         continue
 
@@ -309,6 +306,51 @@ class ValidateResultView(APIView):
         return Response(data, status=status.HTTP_202_ACCEPTED)
 
     
+class ValidateRequirementAPIView(APIView):
+    def getRequirement(self, id):
+        requirement = Institution.objects.filter(id=id).first()
+        return requirement
+
+    def validateRequest(self, request):
+        res =ValidateResultView().post(request)
+        return res.data
+    
+    def requirementCheck(self, requirements, results):
+        try:
+            validRequirement = []
+            if len(results) < len(requirements):
+                return False, "requirements not met"
+            
+            for req in requirements:
+                for res in results:
+                    if res["subject"].lower() == req['subject'].lower() and res['grade'] <= req['grade']:
+                        validRequirement.append(res)
+                        continue
+            
+            if len(validRequirement) == len(requirements):
+                return True
+            else:
+                return False
+
+        except Exception as e:
+            return e
+
+    def post(self, request, id):
+        requirementData = self.getRequirement(id)
+        if not requirementData:
+            return Response({"message": f"No requirement with id {id}"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = InstitutionSerializer(requirementData)
+        requirement = serializer.data['admission_requirements']
+
+        validate = self.validateRequest(request)
+        results = validate['results']
+        reqValid = self.requirementCheck(requirements=requirement, results=results)
+        
+        validate['requirement_met'] = reqValid
+        validate['requirements'] = requirement            
+        return Response(validate, status=status.HTTP_200_OK)
+
 
 def populateDB(level, year, education):
     data = fetchAllData()
@@ -403,3 +445,6 @@ class SubjectAPIView(APIView):
 
 
 
+
+# populateDB(level='advanced', year=2011, education='general')
+# processPopulate(level='advanced', year=2019, education='general')
