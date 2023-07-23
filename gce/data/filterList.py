@@ -7,7 +7,8 @@ import os
 
 def extractData():
     data = []
-    with open("file.txt", "r") as txt_file:
+    file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'file.txt')
+    with open(file, "r") as txt_file:
         lines = txt_file.readlines()
         for i in range(0, len(lines)):
             line = lines[i]

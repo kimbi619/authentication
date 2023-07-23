@@ -42,12 +42,12 @@ subjects = [
     {
         "code": "PMS",
         "level": "advanced",
-        "title": "Pure Mathematics With Mechanics"
+        "title": "Pure Mathematics With Statistics"
     },
     {
         "code": "PMM",
         "level": "advanced",
-        "title": "Pure Mathematics With Statistics"
+        "title": "Pure Mathematics With Mechanics"
     },
     {
         "code": "FRE",

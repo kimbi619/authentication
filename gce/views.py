@@ -38,10 +38,18 @@ class GceCertificateView(APIView):
         date, person, level = self.findEntities(top_half)
         extractedBottomHalf = self.extractData(bottom_half)
 
-        is_valid, message = self.checkValid(person, date, level, extractedBottomHalf)
-
+        # is_valid, message = self.checkValid(person, date, level, extractedBottomHalf)
+        is_valid = self.checkValid(person, date, level, extractedBottomHalf)
+        message = ''
         if is_valid:
-            self.saveCertificate(person, image)
+            message = 'Certificate is valid'
+        else:
+            message = "Invalid document"
+       
+        print(is_valid)
+        print(message)
+        # if is_valid:
+        #     self.saveCertificate(person, image)
         # self.openImage(top_half)
         data = {
             'is_valid': is_valid,
@@ -61,25 +69,27 @@ class GceCertificateView(APIView):
         try:
             student = Student.objects.filter(Q(name=person) & Q(year=year) & Q(level=level)).first()
             validSubject = []
-            if not student:
-                return False, "No such student in the server"
+            if not student.name:
+                return False
             
             subjects = Result.objects.filter(student_id = student.id).all()
             if len(subjects) != len(result):
-                return False, "Results don't match"
+                return False
             
             for res in result:
                 for sub in subjects:
-                    if res["Subject"] == sub.subject and res["Grade"] == sub.grade:
+                    print(res['subject'])
+                    if res["subject"] == sub.subject and res["grade"] == sub.grade:
                         validSubject.append(res)
                         continue
 
             if len(validSubject) == len(result):
-                return True, "valid certificate"
+                return True
+            else:
+                return False
 
         except Exception as e:
             return e
-        return False
     
     def fineTuneImage(self, image):
         """
@@ -209,14 +219,14 @@ class GceCertificateView(APIView):
             for index, line in enumerate(lines):
                 if len(line) < 2:
                     continue
-                if  'Advanced' in line or 'advanc' in line:
+                if  'Cdvanced' in line or 'Adv' in line or 'advanc' in line:
                     level = 'advanced'
                     
                 elif 'Ordinary' in line or 'Ondinary' in line:
                     level = 'ordinary'
                 elif line.__contains__(person):
                     person = line
-
+                    
             return date, person, level
                 
 
@@ -277,6 +287,8 @@ class ValidateResultView(APIView):
 
             if len(validSubject) == len(result):
                 return True, validSubject, "valid Input"
+            else:
+                return False, "Invalid Result"
 
         except Exception as e:
             return e
